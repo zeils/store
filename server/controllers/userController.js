@@ -34,6 +34,35 @@ class UserController {
         return res.json({token})
 
     }
+
+    async oAuth(req,res){
+        const {email, password, role} = req.body
+        const user = await User.findOne({where:{email}})
+        if (!user){
+            const hashPassword = await bcrypt.hash(password, 5)
+            const user = await User.create({email, role, password: hashPassword})
+            const basket = await Basket.create({userId: user.id})
+            const token = generateJwt(user.id, user.email, user.role)
+            return res.json({token})
+        } else
+        {
+            const user = await User.findOne({where:{email}})
+                if (!user){
+                    return next(ApiError.internal('Неверный логин или пароль'))
+                }
+            let comparePassword = bcrypt.compareSync(password, user.password)
+                if (!comparePassword) {
+                    return next(ApiError.internal('Неверный логин или пароль'))
+                }
+        
+            const token = generateJwt(user.id, user.email, user.role)
+            const role = (await User.findByPk(user.id)).role
+            return res.json({token,role})
+        }
+
+
+    }
+
     async login(req,res,next){
         const {email, password} = req.body
         const user = await User.findOne({where:{email}})

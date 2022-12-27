@@ -1,9 +1,8 @@
 FROM node:12
 
-WORKDIR /.
+WORKDIR /app
 
 COPY . .
 
 CMD ["npm", "run", "dev"]
 
-# docker build -t store .
